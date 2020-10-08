@@ -92,25 +92,7 @@ weight_mask = torch.ones(trg_vocab_size).cuda()
 weight_mask[trg['word2id']['<pad>']] = 0
 loss_criterion = nn.CrossEntropyLoss(weight=weight_mask).cuda()
 
-if config['model']['seq2seq'] == 'vanilla':
-
-    model = Seq2Seq(
-        src_emb_dim=config['model']['dim_word_src'],
-        trg_emb_dim=config['model']['dim_word_trg'],
-        src_vocab_size=src_vocab_size,
-        trg_vocab_size=trg_vocab_size,
-        src_hidden_dim=config['model']['dim'],
-        trg_hidden_dim=config['model']['dim'],
-        batch_size=batch_size,
-        bidirectional=config['model']['bidirectional'],
-        pad_token_src=src['word2id']['<pad>'],
-        pad_token_trg=trg['word2id']['<pad>'],
-        nlayers=config['model']['n_layers_src'],
-        nlayers_trg=config['model']['n_layers_trg'],
-        dropout=0.,
-    ).cuda()
-
-elif config['model']['seq2seq'] == 'attention':
+if config['model']['seq2seq'] == 'attention':
 
     model = Seq2SeqAttention(
         src_emb_dim=config['model']['dim_word_src'],
@@ -130,23 +112,6 @@ elif config['model']['seq2seq'] == 'attention':
         dropout=0.,
     ).cuda()
 
-elif config['model']['seq2seq'] == 'fastattention':
-
-    model = Seq2SeqFastAttention(
-        src_emb_dim=config['model']['dim_word_src'],
-        trg_emb_dim=config['model']['dim_word_trg'],
-        src_vocab_size=src_vocab_size,
-        trg_vocab_size=trg_vocab_size,
-        src_hidden_dim=config['model']['dim'],
-        trg_hidden_dim=config['model']['dim'],
-        batch_size=batch_size,
-        bidirectional=config['model']['bidirectional'],
-        pad_token_src=src['word2id']['<pad>'],
-        pad_token_trg=trg['word2id']['<pad>'],
-        nlayers=config['model']['n_layers_src'],
-        nlayers_trg=config['model']['n_layers_trg'],
-        dropout=0.,
-    ).cuda()
 
 if load_dir:
     model.load_state_dict(torch.load(
@@ -157,13 +122,6 @@ if load_dir:
 if config['training']['optimizer'] == 'adam':
     lr = config['training']['lrate']
     optimizer = optim.Adam(model.parameters(), lr=lr)
-elif config['training']['optimizer'] == 'adadelta':
-    optimizer = optim.Adadelta(model.parameters())
-elif config['training']['optimizer'] == 'sgd':
-    lr = config['training']['lrate']
-    optimizer = optim.SGD(model.parameters(), lr=lr)
-else:
-    raise NotImplementedError("Learning method not recommend for task")
 
 for i in xrange(1000):
     losses = []
